@@ -6,20 +6,17 @@ const docker = new Docker();
 async function startContainer(req, res) {
   try {
     console.log("Route hit, attempting to start container...");
-
     console.log(await docker.version());
-
-    // Check if the image exists
     const images = await docker.listImages();
     console.log("Available Images:", images);
 
     const container = await docker.createContainer({
-      Image: "docker-container-code", // Ensure this image exists locally
+      Image: "docker-container-code",
       name: `newContainer${Math.floor(Math.random() * 10)}`,
-      Cmd: ["npm", "run", "start"], // Ensure your image has a script called 'start'
-      ExposedPorts: { "3000/tcp": {} }, // If needed
+      Cmd: ["npm", "run", "start"],
+      ExposedPorts: { "3000/tcp": {} },
       HostConfig: {
-        PortBindings: { "3000/tcp": [{ HostPort: "3001" }] }, // If needed
+        PortBindings: { "3000/tcp": [{ HostPort: "3001" }] },
       },
     });
 
