@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { ApiResponse } from "../utils/ApiResponseHandler.js";
-import { startContainer } from "../controllers/docker.js";
+import {
+  startContainer,
+  stopContaiiner,
+  listContainer,
+  removeContaiiner,
+} from "../controllers/docker.js";
 
 const routes = Router();
 
@@ -9,5 +14,8 @@ routes.get("/", (_, res) => {
 });
 
 routes.route("/create").get(startContainer);
+routes.route("/stop/:containerId").get(stopContaiiner);
+routes.route("/list").get(listContainer);
+routes.route("/remove/:containerId").get(removeContaiiner);
 
 export { routes };
