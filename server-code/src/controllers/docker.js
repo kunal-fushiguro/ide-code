@@ -24,10 +24,11 @@ async function startContainer(_, res) {
     await container.start();
     console.log("Container started successfully");
 
-    const { Id, Config } = await container.inspect();
+    const { Id, Config, HostConfig } = await container.inspect();
     new ApiResponse("Container Started", 201, {
       Id,
       Config,
+      HostConfig,
     }).handleResponse(res);
   } catch (error) {
     console.error("Error occurred:", error);
@@ -85,7 +86,7 @@ async function removeContaiiner(req, res) {
 async function listContainer(_, res) {
   try {
     const listContainer = await docker.listContainers({ all: true });
-    new ApiResponse("Container Stoped", 200, {
+    new ApiResponse("Container fetched", 200, {
       sucess: "true",
       listContainer,
     }).handleResponse(res);
@@ -99,4 +100,31 @@ async function listContainer(_, res) {
   }
 }
 
-export { startContainer, stopContaiiner, removeContaiiner, listContainer };
+async function startSingleConatiner(req, res) {
+  try {
+    const container = await docker.getContainer(req.params.containerId);
+    await container.stop();
+    await container.start();
+    const { Id, Config, HostConfig } = await container.inspect();
+
+    new ApiResponse("Container Started", 201, {
+      Id,
+      Config,
+      HostConfig,
+    }).handleResponse(res);
+  } catch (error) {
+    console.error("Error occurred:", error);
+    new ApiResponse(
+      error.message || "Server Side Error",
+      error.statusCode || 500,
+      { ...error }
+    ).handleResponse(res);
+  }
+}
+export {
+  startContainer,
+  stopContaiiner,
+  removeContaiiner,
+  listContainer,
+  startSingleConatiner,
+};
