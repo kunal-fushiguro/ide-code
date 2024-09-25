@@ -6,6 +6,7 @@ import {
   listContainer,
   removeContaiiner,
   startSingleConatiner,
+  getSingleContainerInfo,
 } from "../controllers/docker.js";
 
 const routes = Router();
@@ -19,5 +20,6 @@ routes.route("/stop/:containerId").get(stopContaiiner);
 routes.route("/list").get(listContainer);
 routes.route("/remove/:containerId").get(removeContaiiner);
 routes.route("/start/:containerId").get(startSingleConatiner);
+routes.route("/info/:id").get(getSingleContainerInfo);
 
 export { routes };

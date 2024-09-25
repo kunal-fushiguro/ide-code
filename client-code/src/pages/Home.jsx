@@ -7,13 +7,17 @@ import { useEffect } from "react";
 
 const Home = () => {
   const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const url = "http://localhost:3030/api/list";
   async function getListOfContainer() {
     try {
+      setLoading(true);
       const response = await fetch(url, {});
       const data = await response.json();
       setList(data.data.listContainer);
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.log(error);
     }
   }
@@ -21,11 +25,23 @@ const Home = () => {
     getListOfContainer();
   }, []);
 
-  async function createNewContainer() {}
+  async function createNewContainer() {
+    try {
+      const url = "http://localhost:3030/api/create";
+
+      const response = await fetch(url);
+      const data = response.json();
+
+      console.log(data);
+      await getListOfContainer();
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   return (
     <Wrapper>
-      <h1 className="text-4xl font-bold text-center mb-8">
+      <h1 className="text-4xl font-bold text-center mb-8 mt-8">
         Mujhe bhi nhi pata kya likhu
       </h1>
       <Box>
@@ -36,7 +52,10 @@ const Home = () => {
           </Button>
         </div>
       </Box>
-      <ContainerList containers={list} />
+      {loading && <div>Loading .......</div>}
+      {!loading && (
+        <ContainerList containers={list} refresh={getListOfContainer} />
+      )}
     </Wrapper>
   );
 };

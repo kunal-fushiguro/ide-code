@@ -67,7 +67,7 @@ async function removeContaiiner(req, res) {
 
     const container = await docker.getContainer(req.params.containerId);
 
-    await container.stop();
+    // await container.stop();
     await container.remove();
 
     new ApiResponse("Container Stoped", 200, { sucess: "true" }).handleResponse(
@@ -103,7 +103,7 @@ async function listContainer(_, res) {
 async function startSingleConatiner(req, res) {
   try {
     const container = await docker.getContainer(req.params.containerId);
-    await container.stop();
+    // await container.stop();
     await container.start();
     const { Id, Config, HostConfig } = await container.inspect();
 
@@ -121,10 +121,28 @@ async function startSingleConatiner(req, res) {
     ).handleResponse(res);
   }
 }
+
+async function getSingleContainerInfo(req, res) {
+  try {
+    const conatienr = await docker.getContainer(req.params.id);
+    const info = await conatienr.inspect();
+    new ApiResponse("Container info fetched", 200, {
+      ...info,
+    }).handleResponse(res);
+  } catch (error) {
+    console.error("Error occurred:", error);
+    new ApiResponse(
+      error.message || "Server Side Error",
+      error.statusCode || 500,
+      { ...error }
+    ).handleResponse(res);
+  }
+}
 export {
   startContainer,
   stopContaiiner,
   removeContaiiner,
   listContainer,
   startSingleConatiner,
+  getSingleContainerInfo,
 };
