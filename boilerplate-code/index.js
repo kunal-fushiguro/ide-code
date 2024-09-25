@@ -1,12 +1,53 @@
 import express from "express";
-const port = 3000;
+import http from "http";
+import { Server as SocketServer } from "socket.io";
+import cors from "cors";
+import { routes } from "./routes/route.js";
+import pty from "node-pty";
+
+const PORT = 3000;
 
 const app = express();
+const server = http.createServer(app);
+const io = new SocketServer({ cors: "*" });
 
-app.get("/", (req, res) => {
-  res.send("Hello World! by kunal");
+io.attach(server);
+
+app.use(cors({ origin: "*" }));
+app.use("/", routes);
+
+app.get("/", (_, res) => {
+  res.json({
+    message: "ok",
+  });
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+const ptyProcess = pty.spawn("bash", [], {
+  name: "xterm-color",
+  cols: 300,
+  rows: 100,
+  cwd: process.env.INIT_CWD + "/user",
+  env: process.env,
 });
+
+io.on("connection", (socket) => {
+  console.log("Connection build ", socket.id);
+
+  socket.on("terminal:input", (data) => {
+    ptyProcess.write(data);
+  });
+
+  ptyProcess.onData((data) => {
+    socket.emit("terminal:output", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected", socket.id);
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Server Started on PORT : ${PORT}`);
+});
+
+export { io };

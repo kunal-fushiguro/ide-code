@@ -1,8 +1,10 @@
-import { useState } from "react";
 import Box from "../components/Box";
 import Button from "../components/Button";
+import { useNavigate } from "react-router-dom";
 
 const ContainerList = ({ containers, refresh }) => {
+  const navigate = useNavigate();
+
   async function startContainer(id) {
     console.log("start", id);
     const url = `http://localhost:3030/api/start/${id}`;
@@ -41,7 +43,8 @@ const ContainerList = ({ containers, refresh }) => {
     const response = await fetch(url);
     const data = await response.json();
     const port = "3000/tcp";
-    console.log(data.data.NetworkSettings.Ports[port][0].HostPort);
+    const runningPort = data.data.NetworkSettings.Ports[port][0].HostPort;
+    navigate(`/ide/${runningPort}`);
   }
 
   return (
