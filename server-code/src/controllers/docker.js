@@ -10,14 +10,18 @@ const maxPort = 8000;
 async function startContainer(_, res) {
   try {
     const newPORT = randomPort(runnigPorts, minPort, maxPort);
+    const newPORT2 = randomPort(runnigPorts, minPort, maxPort);
     console.log("Route hit, attempting to start container...");
     const container = await docker.createContainer({
       Image: "docker-container-code",
       name: `newContainer${Math.floor(Math.random() * 1000)}`,
       Cmd: ["npm", "run", "start"],
-      ExposedPorts: { "3000/tcp": {} },
+      ExposedPorts: { "3000/tcp": {}, "4000/tcp": {} },
       HostConfig: {
-        PortBindings: { "3000/tcp": [{ HostPort: `${newPORT}` }] },
+        PortBindings: {
+          "3000/tcp": [{ HostPort: `${newPORT}` }],
+          "4000/tcp": [{ HostPort: `${newPORT2}` }],
+        },
       },
     });
 
@@ -138,6 +142,7 @@ async function getSingleContainerInfo(req, res) {
     ).handleResponse(res);
   }
 }
+
 export {
   startContainer,
   stopContaiiner,

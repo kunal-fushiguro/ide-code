@@ -24,8 +24,8 @@ app.get("/", (_, res) => {
 
 const ptyProcess = pty.spawn("bash", [], {
   name: "xterm-color",
-  cols: 300,
-  rows: 100,
+  cols: 10000,
+  rows: 10000,
   cwd: process.env.INIT_CWD + "/user",
   env: process.env,
 });
@@ -49,5 +49,3 @@ io.on("connection", (socket) => {
 server.listen(PORT, () => {
   console.log(`Server Started on PORT : ${PORT}`);
 });
-
-export { io };
