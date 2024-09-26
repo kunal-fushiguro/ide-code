@@ -4,6 +4,7 @@ import { Server as SocketServer } from "socket.io";
 import cors from "cors";
 import { routes } from "./routes/route.js";
 import pty from "node-pty";
+import chokidar from "chokidar";
 
 const PORT = 3000;
 
@@ -44,6 +45,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected", socket.id);
   });
+});
+
+chokidar.watch("./user").on("all", () => {
+  io.emit("file:changes", true);
 });
 
 server.listen(PORT, () => {

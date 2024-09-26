@@ -1,69 +1,78 @@
 import { useParams } from "react-router-dom";
 import Wrapper from "../components/Wrapper";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import Button from "../components/Button";
 import Terminal from "../components/Terminal";
+import FileExplorer from "../components/FileExplorer";
 
 const Ide = () => {
-  const connected = useRef(null);
+  const [connectedSocket, setConnectedSocket] = useState(null); // use state to track the socket
   const { port } = useParams();
   const serverUrl = `http://localhost:${port}`;
+  const [files, setFiles] = useState();
+  const [loading, setLoading] = useState(true);
 
   async function getFileStructure() {
     try {
       const response = await fetch(serverUrl + "/getfiles");
       const data = await response.json();
-      console.log(data);
+      setFiles(data.data.tree);
+      console.log(files, data.data.tree);
+      setLoading(false);
     } catch (error) {
       console.log(error);
     }
   }
 
   function inputDataOnTerminal(data) {
-    if (connected.current) {
-      connected.current.emit("terminal:input", data);
-      // connected.current.on("terminal:output", (data) => {
-      //   console.log(data);
-      // });
+    if (connectedSocket) {
+      connectedSocket.emit("terminal:input", data);
     }
   }
 
+  if (connectedSocket?.on) {
+    connectedSocket.on("file:changes", (data) => {
+      if (data) {
+        getFileStructure();
+      }
+    });
+  }
+
   function outputDataOnTerminal(cb) {
-    console.log("hello");
-    if (connected.current) {
-      connected.current.on("terminal:output", cb);
+    if (connectedSocket) {
+      connectedSocket.on("terminal:output", (data) => {
+        console.log(data);
+        cb(data);
+      });
     }
   }
 
   useEffect(() => {
-    connected.current = io(serverUrl);
-    connected.current.on("connect", () => {
+    if (connectedSocket) {
+      return;
+    }
+    const socket = io(serverUrl);
+    setConnectedSocket(socket);
+    socket.on("connect", () => {
       getFileStructure();
     });
 
     return () => {
-      if (connected.current) {
-        connected.current.disconnect();
+      if (socket) {
+        socket.disconnect();
       }
     };
   }, [serverUrl]);
 
   return (
-    <Wrapper>
-      hello : {port}
-      <Button
-        onClick={() => {
-          if (connected.current) {
-            connected.current.emit("listen", { data: "demo" });
-          }
-        }}
-        disable={false}
-      >
-        click
-      </Button>
-      <Terminal input={inputDataOnTerminal} output={outputDataOnTerminal} />
-    </Wrapper>
+    <>
+      <Wrapper>
+        {!loading && <FileExplorer structure={files} key={1} />}
+
+        <Terminal input={inputDataOnTerminal} output={outputDataOnTerminal} />
+      </Wrapper>
+    </>
   );
 };
 
